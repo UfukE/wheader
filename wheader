@@ -1,0 +1,42 @@
+#!/bin/bash
+
+if [ -z "$*" ]; then
+    echo -e "\e[1;34mDescription:\e[0m" >&2
+    echo -e "\tSearches for header files in \e[1;31m/usr/lib\e[0m and \e[1;31m/usr/include\e[0m where the specified \e[1;32mterm\e[0m is defined." >&2
+    echo -e "\n\e[1;34mUsage:\e[0m" >&2
+    echo -e "\t$(basename $0) \e[1;32m<term>\e[0m" >&2
+    echo -e "\n\e[1;34mSupported Terms:\e[0m" >&2
+    echo -e "\ttypedefs, structs, macros" >&2
+    echo -e "\n\e[1;34mExamples:\e[0m" >&2
+    echo -e "\t$(basename $0) NULL" >&2
+    echo -e "\t$(basename $0) size_t" >&2
+    echo -e "\t$(basename $0) sockaddr" >&2
+    exit 1
+fi
+
+
+grep --color -rnP --include \*.h -e "typedef.* $*;" /usr/lib/ /usr/include/ &
+grep --color -rnP --include \*.h -e "#define $*\s" /usr/lib/ /usr/include/ &
+
+
+#struct_output=$(grep -rPz --include \*.h -e "struct $*\s+{" /usr/lib/ /usr/include/ | tr -d '\0' 2>/dev/null)
+#if [ -n "$struct_output" ]; then
+#    echo -e "\e[1;31mFilenames: \e[0m"
+#    echo "$struct_output" | grep -oP "/usr/(?:lib|include)/.*\.h" 
+#    echo -e "\e[1;31mLines:\e[0m"
+#    echo "$struct_output" | grep -nP -e "struct $*$" & 
+#    echo "$struct_output" | grep -nP -e "struct $*\s+{" &
+#    # the problem here is that since struct_output is a possible merge of multiple files, the line numbers are not accurate
+#fi
+
+struct_filenames=$(grep -rlPz --include \*.h -e "struct $*\s+{" /usr/lib/ /usr/include/ 2>/dev/null)
+if [ -n "$struct_filenames" ]; then
+    for filename in $struct_filenames; do
+        #echo -n "$filename:"
+        grep --color -nPH -e "struct $*$" $filename &
+        grep --color -nPH -e "struct $*\s+{" $filename &
+        wait
+    done
+fi
+
+wait
