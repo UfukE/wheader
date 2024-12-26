@@ -15,8 +15,8 @@ if [ -z "$*" ]; then
 fi
 
 
-grep --color -rnP --include \*.h -e "typedef.* $*;" /usr/lib/ /usr/include/ &
-grep --color -rnP --include \*.h -e "#define $*\s" /usr/lib/ /usr/include/ &
+grep --color -rnP --include \*.h -e "typedef.*\s$*;" /usr/lib/ /usr/include/ &
+grep --color -rnP --include \*.h -e "#define\s$*\s" /usr/lib/ /usr/include/ &
 
 
 #struct_output=$(grep -rPz --include \*.h -e "struct $*\s+{" /usr/lib/ /usr/include/ | tr -d '\0' 2>/dev/null)
